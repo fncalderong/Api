@@ -1,7 +1,7 @@
 import os, json, base64, logging
 from flask_api import FlaskAPI
 from flask import request
-
+from backends.Modelo_Calculo import BqClient
 
 # from backends.big_query import BqClient
 app = FlaskAPI(__name__)
@@ -15,47 +15,24 @@ def hello():
     return 'Aplicativo Flask pub-sub'
 
 
+
 @app.route("/pub-sub/", methods=['POST'])
 def pob_sub():
-    print("asd")
+    print(request.data)
     if request.data.get("message"):
         print(request.data.get("message"))
-        # attributes = json.loads(request.data["message"].get("attributes").get("attrs"))
-        # print(attributes)
-        # data = request.data["message"].get("data")
-        # if not attributes:
-        #     logging.warning("No attributes supplied")
-        #     return "", 400
+    return request.data, 200
 
-        return request.data.get("message")
-    # if request.data.get("message"):
-    #     attributes = json.loads(request.data["message"].get("attributes").get("attrs"))
-    #     data = request.data["message"].get("data")
-    #     if not attributes:
-    #         logging.warning("No attributes supplied")
-    #         return "", 400
-    #     if not data:
-    #         logging.warning("No data supplied")
-    #         return "", 400
-    #     if not (attributes.get("dataset") and attributes.get("table")):
-    #         logging.warning("No dataset or table supplied")
-    #         return "", 400
-    #
-    #     try:
-    #         data = base64.b64decode(request.data["message"].get("data"))
-    #         data = json.loads(data)
-    #         table = attributes.get("table")
-    #         if attributes.get("country"):
-    #             data_set = "_".join((attributes.get("dataset"), attributes.get("country")))
-    #         else:
-    #             data_set = attributes.get("dataset")
-    #     except Exception as e:
-    #         logging.error("Se ha encontrado un error inesperado: %s" % e)
-    #         return "", 500
-    #     BqClient().insert_row(data_set, table, data)
-    # else:
-    #     logging.error("No se encontro mensaje pub-sub")
-    return "", 400
+
+@app.route("/modelo/", methods=['GET'])
+def modelo():
+    print(request.args)
+    # print(request.data.get("message"))
+    response = BqClient().get_score(request.args)
+    if response:
+        return response, 200
+    else:
+        return u"No se encontró información", 404
 
 
 if __name__ == '__main__':
